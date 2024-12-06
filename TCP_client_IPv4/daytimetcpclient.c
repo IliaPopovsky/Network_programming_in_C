@@ -55,26 +55,30 @@ int main(int argc, char **argv)
 {
    int sockfd, n;
    char recvline[MAXLINE + 1];
-   struct sockaddr_in servaddr;
+   struct sockaddr_in servaddr;                                        // Структура адреса сервера.
    
    if(argc != 2)
        err_quit("usage: a.out <IPaddress>");
    
-   if((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
-       err_sys("socket error");
+   if((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)                  // Создание сокета, функция socket() создает объект сокета в ядре ОС с помощью системного вызова socket, который имеет номер
+       err_sys("socket error");                                        // 41 для 64-битной ОС Linux и номер 359 для 32-битной ОС LINUX, а в других ОС какой-то другой номер.
        
-   bzero(&servaddr, sizeof(servaddr));
-   servaddr.sin_family = AF_INET;
-   servaddr.sin_port = htons(13);  /* сервер времени и даты */
-   if(inet_pton(AF_INET, argv[1], &servaddr.sin_addr) <= 0)
-      err_quit("inet_pton error for %s", argv[1]);
+   bzero(&servaddr, sizeof(servaddr));                                 // Инициализируем всю структуру адреса сервера нулями. Функция bzero() имеет свою реализацию в некоторых ОС. У нас она
+                                                                       // имеет вид функционального макроса, который вызывает библиотечную функцию memset() и располагается в файле unp.h
+                                                                       // на случай, если в какой-то ОС не будет своей реализации функции bzero().
+   servaddr.sin_family = AF_INET;                                      // Присваиваем значение полю структуры адреса сервера, отвечающему за семейство адресов.     
+   servaddr.sin_port = htons(13);  /* сервер времени и даты */         // Присваиваем значение полю структуры адреса сервера, отвечающему за номер порта. Библиотечная функция htons() преобразует
+                                                                       // двоичный номер порта в требуемый формат, путем вращения влево битов значения.
+   if(inet_pton(AF_INET, argv[1], &servaddr.sin_addr) <= 0)            // Присваиваем значение полю структуры адреса сервера, отвечающему за IP-адрес. Библиотечная функция inet_pton() преобразует
+      err_quit("inet_pton error for %s", argv[1]);                     // аргумент командной строки в символах ASCII(например 206.168.112.96) в двоичный формат.
    
-   if(connect(sockfd, (SA *)&servaddr, sizeof(servaddr)) < 0)
-      err_sys("connect error");
+   if(connect(sockfd, (SA *)&servaddr, sizeof(servaddr)) < 0)          // Функция connect() устанавливает соединение нашего сокета sockfd с сервером, адрес сокета которого содержится в структуре
+      err_sys("connect error");                                        // адреса сервера servaddr. Функция connect() использует системный вызов connect, который имеет номер 42 для 64-битной 
+                                                                       // ОС Linux и номер 362 для 32-битной ОС LINUX, а в других ОС какой-то другой номер. 
       
-   while((n = read(sockfd, recvline, MAXLINE)) > 0)
-   {
-      recvline[n] = 0; /* завершающий нуль */
+   while((n = read(sockfd, recvline, MAXLINE)) > 0)                    // Ответ сервера приходит в наш сокет sockfd, из него мы читаем в наш массив recvline с помощью функции read(), вызывая её 
+   {                                                                   // циклически, т.к. по протоколу TCP данные могут придти не в виде одного сегмента, а в виде нескольких сегментов, поэтому 
+      recvline[n] = 0; /* завершающий нуль */                          // нужно несколько раз вызывать функцию read() в цикле.
       if(fputs(recvline, stdout) == EOF)
           err_sys("fputs error");
    }
