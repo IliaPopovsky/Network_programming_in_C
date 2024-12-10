@@ -9,7 +9,7 @@
 # System = 
 
 CC = gcc
-CFLAGS = -g -O2 -D_REENTRANT -Wall
+CFLAGS = -g -Wall -Wextra -Wpedantic -D_REENTRANT
 LIBS =  -lpthread # ../libunp.a (не нашел нигде)
 LIBS_XTI = ../libunpxti.a ../libunp.a -lpthread
 RANLIB = ranlib
