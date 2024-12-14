@@ -10,6 +10,7 @@ static void err_doit(int errnoflag, int level, const char *fmt, va_list ap)
 	int errno_save, n;
 	char buf[MAXLINE];
 
+        //printf("errno = %d\n", errno);
 	errno_save = errno;		                                        /* value caller might want printed */
 #ifdef	HAVE_VSNPRINTF
 	vsnprintf(buf, sizeof(buf), fmt, ap);	                                 /* this is safe */
@@ -55,6 +56,7 @@ int main(int argc, char **argv)
 {
    int sockfd, n;
    char recvline[MAXLINE + 1];
+   int counter_reads = 0;
    struct sockaddr_in servaddr;                                        // Структура адреса сервера.
    
    if(argc != 2)
@@ -84,12 +86,14 @@ int main(int argc, char **argv)
       
    while((n = read(sockfd, recvline, MAXLINE)) > 0)                    // Ответ сервера приходит в наш сокет sockfd, из него мы читаем в наш массив recvline с помощью функции read(), вызывая её 
    {                                                                   // циклически, т.к. по протоколу TCP данные могут придти не в виде одного сегмента, а в виде нескольких сегментов, поэтому 
-      recvline[n] = 0; /* завершающий нуль */                          // нужно несколько раз вызывать функцию read() в цикле.
-      if(fputs(recvline, stdout) == EOF)
+                                                                       // нужно несколько раз вызывать функцию read() в цикле.
+      counter_reads++;                                                 // counter_reads показывает на сколько сегментов был разделен изначальный объем информации, передаваемой по протоколу TCP.
+      recvline[n] = 0; /* завершающий нуль */                          // Обычно возвращается один сегмент, но при больших объемах данных нельзя расчитывать, что ответ сервера будет получен с 
+      if(fputs(recvline, stdout) == EOF)                               // помощью одного вызова функции read().
           err_sys("fputs error");
    }
    if(n < 0)
       err_sys("read error");
-      
+   printf("counter_reads = %d\n", counter_reads); 
    exit(0);
 }
