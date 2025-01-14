@@ -110,7 +110,6 @@ again:
 int main(int argc, char **argv)
 {
    int listenfd, connfd;
-   socklen_t len;
    struct sockaddr_in servaddr, cliaddr;
    char buff[MAXLINE];
    time_t ticks;
@@ -151,9 +150,12 @@ int main(int argc, char **argv)
                                                                        // прослушиваемым дескриптором (listening descriptor) (в нашем случае это переменная listenfd).             
    printf("Наш сервер работает!\n");
    printf("Наш сервер имеет PID = %d\n", getpid());
-   printf("Наш сервер имеет номер порта = %d\n", servaddr.sin_port);
+   printf("Наш сервер имеет номер порта = %d\n", ntohs(servaddr.sin_port));
    printf("Наш сервер имеет IPv4-адрес = %d\n", servaddr.sin_addr.s_addr);
-   //printf("Наш сервер имеет номер порта = %d\n", getsockname(listenfd, (SA *)&servaddr, &servaddr.len));
+   socklen_t len = MAXSOCKADDR;
+   if(getsockname(listenfd, (SA *)&servaddr, &len) < 0)
+      printf("Не удалось получить локальный адрес протокола.\n");
+   printf("Наш сервер имеет номер порта (по getsockname()) = %d\n", htons(servaddr.sin_port));
    for(;;){
       printf("Цикл нашего сервера работает! (До вызова accept())\n");
       len = sizeof(cliaddr); 
