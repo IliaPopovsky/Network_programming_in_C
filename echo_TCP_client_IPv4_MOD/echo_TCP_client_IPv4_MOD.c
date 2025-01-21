@@ -143,9 +143,14 @@ void str_cli(FILE *fp, int sockfd)
 	char	sendline[MAXLINE], recvline[MAXLINE];
 
 	while (fgets(sendline, MAXLINE, fp) != NULL) {
-
+               #if 1  // No show signal SIGPIPE
 		Writen(sockfd, sendline, strlen(sendline));
-
+               #endif
+               #if 0 // Show signal SIGPIPE
+               Writen(sockfd, sendline, 1);
+               sleep(1);
+               Writen(sockfd, sendline + 1, strlen(sendline) - 1);
+               #endif
 		if (Readline(sockfd, recvline, MAXLINE) == 0)
 			err_quit("str_cli: server terminated prematurely");
 
