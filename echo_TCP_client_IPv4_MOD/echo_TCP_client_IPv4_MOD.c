@@ -143,10 +143,10 @@ void str_cli(FILE *fp, int sockfd)
 	char	sendline[MAXLINE], recvline[MAXLINE];
 
 	while (fgets(sendline, MAXLINE, fp) != NULL) {
-               #if 1  // No show signal SIGPIPE
+               #if 0  // No show signal SIGPIPE
 		Writen(sockfd, sendline, strlen(sendline));
                #endif
-               #if 0 // Show signal SIGPIPE
+               #if 1 // Show signal SIGPIPE
                Writen(sockfd, sendline, 1);
                sleep(1);
                Writen(sockfd, sendline + 1, strlen(sendline) - 1);
@@ -225,6 +225,45 @@ char *sock_ntop(const struct sockaddr *sa, socklen_t salen)
     return (NULL);
 }
 
+void sig_pipe(int signo)
+{
+	
+        printf("SIGPIPE received\n");
+        return;
+}
+
+Sigfunc *signal(int signo, Sigfunc *func)
+{
+	struct sigaction	act, oact;
+
+	act.sa_handler = func;
+	sigemptyset(&act.sa_mask);
+	act.sa_flags = 0;
+	if (signo == SIGALRM) {
+#ifdef	SA_INTERRUPT
+		act.sa_flags |= SA_INTERRUPT;	/* SunOS 4.x */
+#endif
+	} else {
+#ifdef	SA_RESTART
+		act.sa_flags |= SA_RESTART;		/* SVR4, 44BSD */
+#endif
+	}
+	if (sigaction(signo, &act, &oact) < 0)
+		return(SIG_ERR);
+	return(oact.sa_handler);
+}
+/* end signal */
+
+Sigfunc *Signal(int signo, Sigfunc *func)	/* for our signal() function */
+{
+	Sigfunc	*sigfunc;
+
+	if ( (sigfunc = signal(signo, func)) == SIG_ERR)
+		err_sys("signal error");
+	return(sigfunc);
+}
+
+
 
 int main(int argc, char **argv)
 {
@@ -232,6 +271,7 @@ int main(int argc, char **argv)
    struct sockaddr_in servaddr, cliaddr;                                     // Структура адреса сервера и клиента.
    int counter_reads = 0;
    socklen_t len;
+   FILE *fp = NULL;
    
    if(argc != 3)
        err_quit("usage: a.out <IPaddress> and number port");
@@ -257,6 +297,9 @@ int main(int argc, char **argv)
       
       printf("Наш клиент имеет PID = %d\n", getpid());
       printf("Наш клиент обращается к серверу с номером порта = %d\n", htons(servaddr.sin_port));
+      
+      Signal(SIGPIPE, sig_pipe);           /* нужно вызвать waitpid() */
+      
       if(connect(sockfd[i], (SA *)&servaddr, sizeof(servaddr)) < 0)    // Функция connect() устанавливает соединение нашего сокета sockfd с сервером, адрес сокета которого содержится в структуре
          err_sys("connect error");                                     // адреса сервера servaddr. Функция connect() использует системный вызов connect, который имеет номер 42 для 64-битной 
                                                                        // ОС Linux и номер 362 для 32-битной ОС LINUX, а в других ОС какой-то другой номер. 
@@ -270,7 +313,14 @@ int main(int argc, char **argv)
       printf("Наш клиент имеет локальный IP-адрес (по getsockname()) = %s\n", sock_ntop((SA *)&cliaddr, len)); 
       printf("Наш клиент имеет номер порта (по getsockname()) = %d\n", ntohs(cliaddr.sin_port));                      
    }
+   if( (fp = fopen("numeral", "rb")) == NULL)
+   {
+      fprintf(stderr, "Не удается открыть файл %s\n", "numeral");
+      exit(EXIT_FAILURE); 
+   }
+   
    str_cli(stdin, sockfd[0]);                         /* эта функция выполняет все необходимые действия со стороны клиента */  
+   //str_cli(fp, sockfd[0]);
    
    exit(0);
 } 
