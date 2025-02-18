@@ -262,7 +262,16 @@ int main(int argc, char **argv)
    printf("Наш клиент имеет локальный IP-адрес (по getsockname()) = %s\n", sock_ntop((SA *)&cliaddr, len)); 
    printf("Наш клиент имеет номер порта (по getsockname()) = %d\n", ntohs(cliaddr.sin_port));                      
    
-   str_cli(stdin, sockfd);                         /* эта функция выполняет все необходимые действия со стороны клиента */    
+   str_cli(stdin, sockfd);                         /* эта функция выполняет все необходимые действия со стороны клиента */  
+   
+   // Изменение параметра сокета SO_LINGER
+   #if 1
+      struct linger linger_val = {1, 0};
+      socklen_t len_linger = sizeof(linger_val);
+      setsockopt(sockfd, SOL_SOCKET, SO_LINGER, &linger_val, &len_linger);
+   #endif
    
    exit(0);
-}                                                              
+} 
+     
+                                                  
