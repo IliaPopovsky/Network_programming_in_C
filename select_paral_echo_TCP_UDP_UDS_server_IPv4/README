@@ -1,0 +1,17 @@
+Перед проверкой прграммы нужно узнать топологию своей сети с помощью утилит netstat и ifconfig.
+ilia@ilia-VirtualBox:~/Network_programming_in_C/TCP_client_IPv4$ netstat -ni
+Таблица интерфейсов ядра
+Iface      MTU    RX-OK RX-ERR RX-DRP RX-OVR    TX-OK TX-ERR TX-DRP TX-OVR Flg
+docker0   1500        0      0      0 0             0      0      0      0 BMU
+enp0s3    1500     3072      0      0 0          1238      0      0      0 BMRU
+lo       65536      594      0      0 0           594      0      0      0 LRU
+ilia@ilia-VirtualBox:~/Network_programming_in_C/TCP_client_IPv4$ ifconfig enp0s3
+enp0s3: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+        inet 10.0.2.99  netmask 255.255.255.0  broadcast 10.0.2.235
+        inet6 fd81::3037:a438:125f:1371  prefixlen 64  scopeid 0x20<link>
+        ether 09:01:d0:4e:3c:ae  txqueuelen 1000  (Ethernet)
+        RX packets 3072  bytes 3454448 (3.4 MB)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 1238  bytes 181147 (181.1 KB)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
