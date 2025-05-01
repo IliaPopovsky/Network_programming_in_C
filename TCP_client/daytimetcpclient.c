@@ -1,6 +1,8 @@
 // daytimetcpclient.c
 #include "unp.h"
 #include <stdarg.h>
+
+#if 1        // Из книги У. Стивенса "Unix: Разработка сетевых приложений. 3-е издание."
 #include <syslog.h>		                                                /* for syslog() */
 
 int daemon_proc;		                                                /* set nonzero by daemon_init() */
@@ -48,6 +50,8 @@ void err_sys(const char *fmt, ...)
 	va_end(ap);
 	exit(1);
 }
+#endif
+
 #if 0      // Из книги У. Стивенса Передовое программирование в Unix 3-е издание
 static void err_doit(int errnoflag, int error, const char *fmt, va_list ap)
 {
